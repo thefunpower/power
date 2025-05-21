@@ -19,13 +19,13 @@ class Dir
     {
         if (is_string($arr)) {
             $v = $arr;
-            if (!is_dir($v)) {
-                mkdir($v, 0777, true);
+            if (!is_dir($v) && !mkdir($v, 0777, true)) {
+                throw new \Exception("无法创建目录: $v");
             }
         } elseif (is_array($arr)) {
             foreach ($arr as $v) {
-                if (!is_dir($v)) {
-                    mkdir($v, 0777, true);
+                if (!is_dir($v) && !mkdir($v, 0777, true)) {
+                    throw new \Exception("无法创建目录: $v");
                 }
             }
         }
