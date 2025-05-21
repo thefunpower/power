@@ -13,5 +13,8 @@
         "psr-4": {
             "Power\\": "./src/"
         }
+    },
+    "require": {
+        "alchemy/zippy": "^1.0"
     }
 }
