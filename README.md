@@ -1,5 +1,11 @@
 # Power
 
+安装
+
+~~~
+"thefunpower/power": "dev-main"
+~~~ 
+
 
 ## Unzip
 
