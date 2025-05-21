@@ -1,0 +1,17 @@
+{
+    "name": "thefunpower/power",
+    "type": "library",
+    "description": "php function library",
+    "keywords": ["php"],
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "kenken"
+        }
+    ],
+    "autoload": {  
+        "psr-4": {
+            "Power\\": "./src/"
+        }
+    }
+}
