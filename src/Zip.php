@@ -49,10 +49,13 @@ class Zip
             $validFiles[] = $realPath;
         }
 
+        // 计算共同基准路径
+        $basePath = self::findCommonPathPrefix($validFiles);
+
         foreach ($validFiles as $file) {
+            // 计算相对路径
             if (is_dir($file)) {
                 // 如果是目录，递归添加目录内容
-                $basePath = $file; // 目录的绝对路径
                 $iterator = new \RecursiveIteratorIterator(
                     new \RecursiveDirectoryIterator($file, \RecursiveDirectoryIterator::SKIP_DOTS),
                     \RecursiveIteratorIterator::SELF_FIRST
@@ -62,17 +65,17 @@ class Zip
                     if ($item->isFile()) {
                         $itemPath = $item->getPathname();
                         $relativePath = $preserveDirStructure
-                            ? substr($itemPath, strlen($basePath) + 1) // 从目录本身开始计算相对路径
+                            ? substr($itemPath, strlen($basePath)) // 从共同基准路径计算相对路径
                             : basename($itemPath);
-                        $zip->addFile($itemPath, $relativePath);
+                        $zip->addFile($itemPath, ltrim($relativePath, DIRECTORY_SEPARATOR));
                     }
                 }
             } else {
                 // 如果是文件，添加文件
                 $relativePath = $preserveDirStructure
-                    ? substr($file, strlen(dirname($file)) + 1) // 保留相对于父目录的路径
+                    ? substr($file, strlen($basePath)) // 保留相对于共同基准路径的路径
                     : basename($file);
-                $zip->addFile($file, $relativePath);
+                $zip->addFile($file, ltrim($relativePath, DIRECTORY_SEPARATOR));
             }
         }
 
@@ -83,6 +86,32 @@ class Zip
 
         $zip->close();
         return $output;
+    }
+
+    /**
+     * 计算文件路径的共有前缀
+     * @param array $paths 输入的文件路径数组
+     * @return string 返回共同路径前缀
+     */
+    private static function findCommonPathPrefix(array $paths): string
+    {
+        if (empty($paths)) {
+            return '';
+        }
+
+        // 开始以第一个路径作为基础
+        $basePath = rtrim(array_shift($paths), DIRECTORY_SEPARATOR);
+
+        foreach ($paths as $path) {
+            while (!str_starts_with(rtrim($path, DIRECTORY_SEPARATOR), rtrim($basePath, DIRECTORY_SEPARATOR))) {
+                $basePath = dirname($basePath);
+                if (strlen($basePath) === 0) {
+                    return '';
+                }
+            }
+        }
+
+        return $basePath . DIRECTORY_SEPARATOR; // 返回共同基准路径
     }
 
     /**
