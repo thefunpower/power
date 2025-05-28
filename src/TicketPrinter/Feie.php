@@ -6,7 +6,7 @@ namespace Power;
  * 飞鹅打印
  */
 
-class FeiE extends Base
+class Feie extends Base
 {
     //手机号
     public $phone;

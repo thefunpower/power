@@ -1,7 +1,7 @@
 # 小票打印
 
 ~~~ 
-$client = new \Power\FeiE;
+$client = new \Power\Feie;
 $data = [
   [
     "title"=>'标题',
