@@ -1,6 +1,6 @@
 <?php
 
-namespace Power;
+namespace Power\TicketPrinter;
 
 /**
  * 由于小票机打印在多家接口上并不统一且排版困难。

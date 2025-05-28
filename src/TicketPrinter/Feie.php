@@ -1,6 +1,6 @@
 <?php
 
-namespace Power;
+namespace Power\TicketPrinter;
 
 /**
  * 飞鹅打印
