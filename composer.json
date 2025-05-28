@@ -11,6 +11,9 @@
             "name": "kenken"
         }
     ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.x"
+    },
     "autoload": {
         "psr-4": {
             "Power\\": "./src/"
