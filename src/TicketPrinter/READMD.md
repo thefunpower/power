@@ -1,7 +1,10 @@
 # 小票打印
 
 ~~~ 
-$client = new \Power\TicketPrinter\Feie;
+$client = new \Power\TicketPrinter\Feie; 
+$client->user = '';
+$client->ukey = '';
+
 $data = [
   [
     "title"=>'标题',
@@ -40,14 +43,7 @@ $data = [
   ], 
 ];
 
-$client->print_58([
-	'user'=>'',
-	'ukey'=>'',
-	'sn'=>'',
-],[
-    'list'=>$s,
-    'times'=>1,
-]);
+$client->print($data);
 ~~~
 
 

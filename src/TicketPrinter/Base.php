@@ -2,12 +2,6 @@
 
 namespace Power\TicketPrinter;
 
-/**
- * 由于小票机打印在多家接口上并不统一且排版困难。
- * 一般小票机接口都有对应的字符表示具体的意义，如<BR>表示换行。
- * 此类主要作用是统一转换成对应的小票机接口所需要的字符，统一发起调用
- *   
- */
 class Base
 {
     //设备的2个key
@@ -17,13 +11,9 @@ class Base
     public $user = '';
     public $ukey = '';
     /**
-     * 把格式转成打印机支持的标签 
+     * 把格式转成打印机支持的标签
      */
     public $parse_trans = [
-        /////////////////////////////////////////////////////////
-        // 58mm 小票机
-        /////////////////////////////////////////////////////////
-        // 飞鹅 http://help.feieyun.com/document.php
         //数字字母混合条形码,最多支持14位数字大写字母混合
         'code_abc' => "<BC128_A>#</BC128_A>",
         //最多支持22位纯数字
@@ -44,29 +34,11 @@ class Base
         'b' => "<B>#</B>",
         //居中放大
         'cb' => "<CB>#</CB>",
-        //切刀指令(主动切纸,仅限切刀打印机使用才有效果) 
+        //切刀指令(主动切纸,仅限切刀打印机使用才有效果)
         'cut' => "<CUT>",
         //换行符
         'br' => "#<BR>",
         'line' => "#",
-        /////////////////////////////////////////////////////////
-        // 标签机 
-        /////////////////////////////////////////////////////////
-        // 飞鹅
-        // 30,20
-        't_size' => "<SIZE>#</SIZE>",
-        //1：正向出纸，0：反向出纸， 
-        't_d' => "<DIRECTION>#</DIRECTION>",
-        //打印图片 
-        't_img' => '<IMG x="10" y="100">',
-        //打印二维码 
-        't_qr' => '<QR x="10"  y="100"  e="L"  w="5">#</QR>',
-        // 打印文本，其中属性x为水平方向起始点坐标（默认为0），属性y为垂直方向起始点坐标（默认为0）
-        't_text' => '<TEXT x="10" y="100" font="12" w="2" h="2" r="0">#</TEXT>',
-        //打印code128一维码 
-        't_code128' => '<BC128 x="10" y="100" h="80" s="1" r="0" n="1" w="1">#</BC128>',
-        //打印LOGO指令(前提是预先在机器内置LOGO图片)，其中属性x为水平方向起始点坐标（默认为0） 
-        't_logo' => '<LOGO x="10" y="100"></LOGO>',
     ];
     //画横线
     public $line_num = 32;
@@ -93,7 +65,7 @@ class Base
     {
         $str = '';
         foreach ($all as $v) {
-            if ($v['top']) {
+            if (isset($v['top']) && $v['top']) {
                 $str .= $this->_parse_list($v);
             } else {
                 $str .= $this->_parse($v);
@@ -112,9 +84,9 @@ class Base
         //p1是第一行标题行，主要计算出第列最大字符数
         $p1 = [];
         $total = 0;
-        $max = $this->get_row_max_abc();
-        $top_tag = "br";
-        if ($top['tag']) {
+        $max = $row_max = $this->get_row_max_abc();
+        $top_tag = "L|W|br";
+        if (isset($top['tag'])) {
             $top_tag = $top['tag'];
             unset($top['tag']);
         }
@@ -137,8 +109,8 @@ class Base
             ];
         }
         /**
-         * row_1生成的效果 
-         * 名称                 单价  数量 
+         * row_1生成的效果
+         * 名称                 单价  数量
          */
         $row_1 = '';
         $list_k_l = [];
@@ -157,10 +129,12 @@ class Base
             $list_k_l[$k] = $append_len;
             $top_key_len[$k] = $append_len + $v['val_len'];
         }
+        $t = 'br|br';
+
         $printer_line = [
             [
                 'title' => $row_1,
-                'tag'  => $top_tag
+                'tag'  => $t
             ]
         ];
 
@@ -168,17 +142,28 @@ class Base
         $com = [];
         foreach ($list as $v) {
             $row = [];
-            foreach ($v as $kk => $vv) {
-                $max = $list_k_l[$kk];
-                if ($max) {
-                    $row[] = [
-                        'k' => $kk,
-                        'v' => $vv,
-                        'len' => mb_strwidth($vv, 'utf-8'),
-                        'max' => $max,
-                    ];
+            if (is_array($v)) {
+                foreach ($v as $kk => $vv) {
+                    $max = $list_k_l[$kk];
+                    if ($max) {
+                        $row[] = [
+                            'k' => $kk,
+                            'v' => $vv,
+                            'len' => mb_strwidth($vv, 'utf-8'),
+                            'max' => $max,
+                        ];
+                    }
                 }
+            } else {
+                $row[] = [
+                    'k' => 'title',
+                    'v' => $v,
+                    'len' => mb_strwidth($v, 'utf-8'),
+                    'max' => $row_max,
+                    'subtitle' => $v,
+                ];
             }
+
             $com[] = $row;
         }
         foreach ($com as $k => $v) {
@@ -197,7 +182,7 @@ class Base
                     if ($max_row > $max) {
                         $max_row = $max;
                     }
-                    $new_k .= Str::gbkSubstr($val, $j, $max);
+                    $new_k .= $this->gbk_substr($val, $j, $max);
                     $space = $max;
                     if ($new_k) {
                         $v[0]['v'] = $new_k;
@@ -219,10 +204,11 @@ class Base
         foreach ($new_p as $v) {
             $list = [];
             $title = '';
+            $tag = "br|l|w|br";
             foreach ($v as $vv) {
-                $k1   = $vv['k'];
+                $k1   = $vv['k'] ?? '';
                 $v1   = $vv['v'];
-                $max  = $top_key_len[$k1];
+                $max  = $top_key_len[$k1] ?? 0;
                 $len  = mb_strwidth($v1, 'utf-8');
                 $less = $max - $len;
                 $sp   = '';
@@ -231,11 +217,16 @@ class Base
                         $sp .= ' ';
                     }
                 }
-                $title .= $v1 . $sp;
+                if (isset($vv['subtitle']) && $vv['subtitle']) {
+                    $tag = "c|br";
+                    $title = $vv['subtitle'];
+                } else {
+                    $title .= $v1 . $sp;
+                }
             }
             $printer_line[] = [
                 'title' => $title,
-                'tag' => "br",
+                'tag' => $tag,
             ];
         }
         $str = '';
@@ -261,9 +252,8 @@ class Base
     protected function _parse($v)
     {
         $str = "";
-        $title = $v['title'];
+        $title = $v['title'] ?? '';
         $tag   = $v['tag'];
-        $attr  = $v['attr'];
         if (strpos($tag, '|') === false) {
             $tag = $tag . '|';
         }
@@ -274,12 +264,7 @@ class Base
             }
             $find = $this->parse_trans[$t];
             if ($find) {
-                if (strpos($t, 't_') !== false) {
-                    $title = $this->_parse_tag($title, $find, $attr);
-                    if (strpos($title, '<') !== false) {
-                        continue;
-                    }
-                } else if ($t == 'line') {
+                if ($t == 'line') {
                     $title = $this->make_line();
                 }
                 $title = str_replace("#", $title, $find);
@@ -288,49 +273,18 @@ class Base
         $str .= $title;
         return $str;
     }
-    //用于解析标签机
-    protected function _parse_tag($title, $str, $attr = [])
-    {
-        $append = '';
-        if (strpos($str, '#') !== false) {
-            $append = $title;
-        }
-        $t1  = trim(substr($str, 1, strpos($str, " ")));
-        $xml = simplexml_load_string($str);
-        $arr = (array) $xml->attributes();
-        if (!$arr) {
-            return $title;
-        }
-        foreach ($arr as $v) {
-            $find = $v;
-        }
-        if ($attr) {
-            foreach ($attr as $k => $v) {
-                if ($find[$k]) {
-                    $find[$k] = $v;
-                }
-            }
-        }
-        $t = ucfirst($t1);
-        $str = "<" . $t . " ";
-        $in  = '';
-        foreach ($find as $k => $v) {
-            $in .= $k . '="' . $v . '" ';
-        }
-        $str = $str . $in . ">" . $append . "</" . $t . ">";
-        $single = ['</LOGO>'];
-        foreach ($single as $v) {
-            if (strpos($str, $v) !== false) {
-                $str = str_replace($v, "", $str);
-            }
-        }
-        return $str;
-    }
     //配置参数
     public function set($arr)
     {
         foreach ($arr as $k => $v) {
             $this->$k = $v;
         }
+    }
+
+    public function gbk_substr($text, $start, $len, $gbk = 'GBK')
+    {
+        $str = mb_strcut(mb_convert_encoding($text, $gbk, "UTF-8"), $start, $len, $gbk);
+        $str = mb_convert_encoding($str, "UTF-8", $gbk);
+        return $str;
     }
 }
