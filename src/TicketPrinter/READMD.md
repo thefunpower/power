@@ -1,9 +1,7 @@
 # 小票打印
 
 ~~~ 
-$client = new \Power\TicketPrinter\Feie; 
-$client->user = '';
-$client->ukey = '';
+ 
 
 $data = [
   [
@@ -42,6 +40,12 @@ $data = [
      ]
   ], 
 ];
+
+$client = new \Power\TicketPrinter\Feie; 
+$client->user = '';
+$client->ukey = '';
+$client->sn = '';
+$client->backUrl = Env::getDomain();
 
 $client->print($data);
 ~~~
