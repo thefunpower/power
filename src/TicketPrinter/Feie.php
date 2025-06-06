@@ -23,11 +23,21 @@ class Feie extends Base
         }
     }
 
-    // 打印
+    /**
+     * 58mm打印
+     */
     public function print($content, $num = 1)
     {
         $content = $this->parse($content);
         return $this->printMsg($this->sn, $content, $num);
+    }
+    /**
+     * 标签机打印
+     */
+    public function print_label($content, $num = 1)
+    {
+        $content = $this->parse($content);
+        return $this->printMsgLabel($this->sn, $content, $num);
     }
 
     /**
@@ -93,7 +103,7 @@ class Feie extends Base
         ], 'POST');
     }
 
-    public function label($sn, $content, $times)
+    public function printMsgLabel($sn, $content, $times)
     {
         return $this->request('Open_printLabelMsg', [
             'sn' => $sn,
