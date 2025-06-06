@@ -132,15 +132,9 @@ $layoutData = [
         'align' => 'left',
         'y' => 20 // 毫米
     ],
-    // 第四行：底部对齐，指定y=25mm (200点)
-    [
-        'title' => date('Y-m-d H:i:s'),
-        'font' => 10,
-        'y' => 25,
-        'x' => 20,
-    ],
+     
     // 条形码（Code128）
-    [
+    /*[
         'type' => 'barcode128',
         'code' => '12345678',
         'x' => 10,
@@ -164,7 +158,18 @@ $layoutData = [
         'type' => 'logo',
         'x' => 200,
         'y' => 50
-    ]
+    ],*/
+    [
+        ['title' => '孙先生', 'font' => 12,'y' => 22 , 'widthScale' => 1, 'heightScale' => 1],
+        ['title' => '5213', 'font' => 12,'y' => 22 , 'widthScale' => 1, 'heightScale' => 1, 'align' => 'right',],
+    ],
+
+    // 第四行：底部对齐，指定y=25mm (200点)
+    [
+        'title' => date('Y-m-d H:i:s'),
+        'font' => 10,
+        'y' => 25, 
+    ],
 ];
 $data = Label::run($layoutData);
 ~~~
