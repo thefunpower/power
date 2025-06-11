@@ -12,15 +12,15 @@ class Label
     public static $point = 8;
     // 非中文字符（英数字体）的宽高配置，键为字体大小，值为[宽度, 高度]（单位：点）
     public static $abc = [
-        12 => [12, 20], // font=12时，宽12点，高20点
-        16 => [16, 24],
-        10 => [10, 20], // 为font=10添加默认值
+        12 => [8, 12],
+        13 => [16, 24],
+        14 => [24, 32],
     ];
     // 中文字符的宽高配置，键为字体大小，值为[宽度, 高度]（单位：点）
     public static $hanz = [
         12 => [24, 24], // font=12时，宽24点，高24点
-        16 => [24, 24],
-        10 => [20, 20], // 为font=10添加默认值
+        13 => [28, 28],
+        14 => [32, 32],
     ];
     // 左右边距，单位：点，等于一个font=12的中文字符宽度
     public static $margin = 24;
@@ -106,23 +106,23 @@ class Label
      * 按最大宽度分割文本为多行
      * @param string $text 文本内容
      * @param int $font 字体大小
-     * @param int $widthScale 宽度
+     * @param int $widthScale 宽度放大倍率
      * @param int $maxWidth 最大可用宽度（点）
      * @return array 分割后的文本行数组
      */
     private static function wrapText($text, $font, $widthScale, $maxWidth)
     {
+        $extraRightMargin = 8; // 额外1mm右边距（1mm = 8点）
+        $additionalPadding = 48; // 额外调整以达到216点宽（272 - 216 = 56，包含8点右边距）
+        $adjustedMaxWidth = $maxWidth - $extraRightMargin - $additionalPadding; // 调整最大宽度
         $lines = [];
         $currentLine = '';
         $currentWidth = 0;
-        $isChinese = self::isChinese($text);
-        $baseWidth = $isChinese ? self::$hanz[$font][0] ?? 24 : self::$abc[$font][0] ?? 12;
-        $charWidth = $baseWidth * $widthScale;
 
         for ($i = 0; $i < mb_strlen($text, 'utf-8'); $i++) {
             $char = mb_substr($text, $i, 1, 'utf-8');
             $charWidthScaled = self::getTextWidth($char, $font, $widthScale);
-            if ($currentWidth + $charWidthScaled <= $maxWidth) {
+            if ($currentWidth + $charWidthScaled <= $adjustedMaxWidth) {
                 $currentLine .= $char;
                 $currentWidth += $charWidthScaled;
             } else {
@@ -156,15 +156,18 @@ class Label
         $align = $item['align'] ?? 'left';
         $rotation = $item['r'] ?? 0;
 
-        // 先定义边距和尺寸变量
+        // 定义边距和尺寸变量
         $fullWidth = self::$width * self::$point; // 320点
         $fullHeight = self::$height * self::$point; // 240点
         $margin = self::$margin; // 24点边距
         $effectiveWidth = $availableWidth - 2 * $margin; // 减去左右边距
+        $lineSpacing = 8; // 额外1mm行间距（1mm = 8点）
 
-        // 如果指定了x或y值（单位毫米），转换为点
+        // 如果指定了x值（单位毫米），转换为点
         $x = isset($item['x']) ? (int)($item['x'] * self::$point) : $margin;
-        $y = isset($item['y']) ? (int)($item['y'] * self::$point) : $yOffset;
+
+        // 如果指定了y值（单位毫米），作为第一行的y坐标
+        $baseY = isset($item['y']) ? (int)($item['y'] * self::$point) : $yOffset;
 
         $textHeight = self::getTextHeight($text, $font, $heightScale);
 
@@ -185,7 +188,7 @@ class Label
                         $x = (int)($margin + ($effectiveWidth - $lineWidth) / 2);
                         break;
                     case 'right':
-                        $x = (int)($margin + ($effectiveWidth - $lineWidth));
+                        $x = (int)($margin + $effectiveWidth - $lineWidth);
                         break;
                     case 'left':
                     default:
@@ -194,11 +197,11 @@ class Label
                 }
             }
 
-            // 每行y坐标（如果指定了y，直接使用；否则递增）
-            $lineY = isset($item['y']) ? (int)($item['y'] * self::$point) : $y + ($index * $textHeight);
+            // 每行y坐标：使用baseY作为第一行起点，后续行递增（包含1mm行间距）
+            $lineY = $baseY + ($index * ($textHeight + ($allowWrap ? $lineSpacing : 0)));
 
             // 确保坐标在有效范围内
-            $x = max($margin, min($x, $fullWidth - $lineWidth - $margin));
+            $x = max($margin, min($x, $availableWidth - $lineWidth - $margin));
             $lineY = max(0, min($lineY, $fullHeight - $textHeight));
 
             $attrs[] = [
@@ -271,7 +274,7 @@ class Label
             }
 
             $maxHeight = 0;
-            $isSingleItem = !isset($row[0]) || !is_array($row[0]);
+            $isSingleItem = isset($row['title']);
 
             if ($isSingleItem) {
                 // 单列行，允许换行
