@@ -106,44 +106,105 @@ protected function do_print_58mm($set,$sn,$content,$times){
 
 ## 飞蛾标签机
 
+https://help.feieyun.com/home/doc/zh;nav=1-2
+
+`x` `y`的值是`mm`不是像素。
+
+## 模板一
+
+~~~
+use Power\TicketPrinter\Label;
+$layoutData = [
+    ['title' => 'A103', 'x' => 1,'y'=>1,],
+    ['title' => '06-20/14:18', 'x' => 20,'y'=>1,],
+    ['title' => '生椰拿铁', 'x' => 1, 'y' => 6, 'w' => 1, 'h' => 2],
+    ['title' => '常温 无糖', 'x' => 1, 'y' => 13],
+    ['title' => '手机尾号:2737', 'x' => 18, 'y' => 25],
+]; 
+$layoutData[] = [ 
+    'type' => 'QR', 
+    'text' => 'QR123',
+    'x' => 23,
+    'y' => 6,
+    'e'=>'L',
+    'w' => 5,
+];
+$data = Label::run($layoutData); 
+~~~
+
+## 支持自动换行
+
+~~~
+use Power\TicketPrinter\Label;
+$layoutData = [
+    ['title' => 'A103', 'x' => 1,'y'=>1,],
+    ['title' => '06-20/14:18', 'x' => 20,'y'=>1,],
+    ['title' => '生椰拿铁生椰拿铁生椰拿铁生椰拿铁生椰拿铁', 'x' => 1, 'y' => 6, 'w' => 1, 'h' => 2],
+    ['title' => '常温 无糖', 'x' => 1, 'y' => 13],
+    ['title' => '手机尾号:1111', 'x' => 18, 'y' => 25],
+]; 
+
+$data = Label::run($layoutData); 
+
+~~~
+
+
+
+## 测试一行可以打多少个字。
+
 ~~~
 use Power\TicketPrinter\Label;
 
-$layoutData = [ 
-
-    ['title' => '订单001', 'font' => 12, 'widthScale' => 1, 'heightScale' => 1,'x'=>1,], 
-    ['title' => '1/5', 'font' => 12, 'widthScale' => 1, 'heightScale' => 1, 'x'=>20,] 
-   
-     
-    // 条形码（Code128）
-    /*[
-        'type' => 'barcode128',
-        'code' => '12345678',
-        'x' => 10,
-        'y' => 100,
-        'h' => 80,
-        's' => 1,
-        'r' => 0,
-        'n' => 1,
-        'w' => 1
-    ],
-    // 条形码（Code39）
-    [
-        'type' => 'barcode39',
-        'code' => 'ABCD1234',
-        'x' => 10,
-        'y' => 150,
-        'h' => 60
-    ],
-    // LOGO
-    [
-        'type' => 'logo',
-        'x' => 200,
-        'y' => 50
-    ],*/
+$layoutData[] = [
+    'title' =>"0123456789012345678901234",
+    'font' => 12,
+    'x'=>0,
+    'y' => 2  
 ];
+
+$layoutData[] = [
+    'title' =>"我是中文我是中文我是中文啦",
+    'font' => 12,
+    'x'=>0,
+    'y' => 10,
+    'w'=>2,
+    'h'=>2,
+];
+
 $data = Label::run($layoutData);
 ~~~
 
 
 主要依赖 `x` `y`来定位，没有自动换行功能。需要用户自己计算x y的值。
+
+##  演示二维码
+
+~~~
+$layoutData[] = [ 
+    'type' => 'BC128',
+    'text' => '12345678',
+    'x' => 25,
+    'y' => 6,
+    'h' => 80,
+    's' => 1,
+    'r' => 0,
+    'n' => 1,
+    'w' => 1 
+];
+
+$layoutData[] = [ 
+    'type' => 'LOGO', 
+    'x' => 25,
+    'y' => 6,
+];
+
+$layoutData[] = [ 
+    'type' => 'QR', 
+    'text' => 'QR123',
+    'x' => 23,
+    'y' => 6,
+    'e'=>'L',
+    'w' => 5,
+];
+~~~
+
