@@ -292,16 +292,41 @@ class Str
      */
     public static function cut($string, $length, $append = '')
     {
-        $new_str = '';
-        preg_match_all("/[\x01-\x7f]|[\xc2-\xdf][\x80-\xbf]|\xe0[\xa0-\xbf][\x80-\xbf]|[\xe1-\xef][\x80-\xbf][\x80-\xbf]|\xf0[\x90-\xbf][\x80-\xbf][\x80-\xbf]|[\xf1-\xf7][\x80-\xbf][\x80-\xbf][\x80-\xbf]/", $string, $info);
-        for ($i = 0; $i < count($info[0]); $i++) {
-            $new_str .= $info[0][$i];
-            $j = ord($info[0][$i]) > 127 ? $j + 2 : $j + 1;
-            if ($j > $length - 3) {
-                return $new_str . $append;
+        if (mb_strlen($string, 'UTF-8') <= $length) {
+            return $string;
+        }
+
+        $newStr = '';
+        $count = 0;
+
+        for ($i = 0; $i < strlen($string); $i++) {
+            $char = $string[$i];
+            $ord = ord($char);
+
+            // 判断是否是UTF-8字符的首字节
+            if ($ord > 127) {
+                // 计算UTF-8字符的字节数
+                $bytes = 0;
+                if (($ord & 0xF8) == 0xF0) $bytes = 4;
+                elseif (($ord & 0xF0) == 0xE0) $bytes = 3;
+                elseif (($ord & 0xE0) == 0xC0) $bytes = 2;
+
+                // 获取完整的多字节字符
+                $multiByteChar = substr($string, $i, $bytes);
+                $newStr .= $multiByteChar;
+                $i += $bytes - 1;
+                $count += 2; // 中文字符按2个长度计算
+            } else {
+                $newStr .= $char;
+                $count += 1;
+            }
+
+            if ($count >= $length) {
+                return $newStr . $append;
             }
         }
-        return join('', $info[0]);
+
+        return $newStr;
     }
     /**
      * 判断是否为中文
