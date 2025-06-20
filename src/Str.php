@@ -182,9 +182,6 @@ class Str
     {
         return round(10 / ($price / $nowprice), 1);
     }
-
-
-
     /**
      * 计算时间剩余　 
      * 
@@ -253,7 +250,7 @@ class Str
      * @param string $j 位数 　 
      * @return int
      */
-    public static function rand_number($j = 4)
+    public static function randNumber($j = 4)
     {
         $str = null;
         for ($i = 0; $i < $j; $i++) {
@@ -305,5 +302,37 @@ class Str
             }
         }
         return join('', $info[0]);
+    }
+    /**
+     * 判断是否为中文
+     * @param string $char 字符
+     * @return bool
+     */
+    public static function isChinese($char)
+    {
+        return preg_match("/[\x{4e00}-\x{9fa5}]/u", $char);
+    }
+
+    /**
+     * 计算字符串中中文字符和非中文字符的数量
+     *
+     * @param string $str 要计算的字符串
+     * @return array 包含中文字符和非中文字符数量的数组
+     */
+    public static function countCharacters($str)
+    {
+        $chineseCount = 0;
+        $nonChineseCount = 0;
+
+        for ($i = 0; $i < mb_strlen($str, 'utf-8'); $i++) {
+            $char = mb_substr($str, $i, 1, 'utf-8');
+            if (self::isChinese($char)) {
+                $chineseCount++;
+            } else {
+                $nonChineseCount++;
+            }
+        }
+
+        return ['chinese' => $chineseCount, 'nonChinese' => $nonChineseCount];
     }
 }

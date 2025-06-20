@@ -109,29 +109,11 @@ protected function do_print_58mm($set,$sn,$content,$times){
 ~~~
 use Power\TicketPrinter\Label;
 
-$layoutData = [
-    // 第一行：三列，未指定y，自动布局
-    [
-        ['title' => '订单001', 'font' => 12, 'widthScale' => 1, 'heightScale' => 1],
-        ['title' => '五号桌', 'font' => 12, 'widthScale' => 1, 'heightScale' => 1, 'align' => 'center',],
-        ['title' => '1/5', 'font' => 12, 'widthScale' => 1, 'heightScale' => 1, 'align' => 'right',]
-    ],
-    // 第二行：单列，指定y=15mm (120点)，居中
-    [
-        'title' => '可乐鸡翅',
-        'font' => 12,
-        'align' => 'center',
-        'widthScale' => 2,
-        'heightScale' => 2,
-        'y' => 8 // 毫米
-    ],
-    // 第三行：单列，未指定y，自动布局
-    [
-        'title' => '备注：不要加辣！！！',
-        'font' => 12,
-        'align' => 'left',
-        'y' => 20 // 毫米
-    ],
+$layoutData = [ 
+
+    ['title' => '订单001', 'font' => 12, 'widthScale' => 1, 'heightScale' => 1,'x'=>1,], 
+    ['title' => '1/5', 'font' => 12, 'widthScale' => 1, 'heightScale' => 1, 'x'=>20,] 
+   
      
     // 条形码（Code128）
     /*[
@@ -159,17 +141,9 @@ $layoutData = [
         'x' => 200,
         'y' => 50
     ],*/
-    [
-        ['title' => '孙先生', 'font' => 12,'y' => 22 , 'widthScale' => 1, 'heightScale' => 1],
-        ['title' => '5213', 'font' => 12,'y' => 22 , 'widthScale' => 1, 'heightScale' => 1, 'align' => 'right',],
-    ],
-
-    // 第四行：底部对齐，指定y=25mm (200点)
-    [
-        'title' => date('Y-m-d H:i:s'),
-        'font' => 10,
-        'y' => 25, 
-    ],
 ];
 $data = Label::run($layoutData);
 ~~~
+
+
+主要依赖 `x` `y`来定位，没有自动换行功能。需要用户自己计算x y的值。
