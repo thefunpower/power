@@ -56,4 +56,22 @@ class Dir
         }
         return $arr;
     }
+    /**
+    * 删除目录
+    * @param $day 几天前，默认1天前
+    */
+    public static function dir($dir,$day = 1){
+        $day = $day - 1;
+        if($day < 0){
+            return false;
+        }
+        if(!is_dir($dir)){
+            return false;
+        }
+        $cmd = "find $dir -type f -mtime +".$day." -delete";
+        exec($cmd);
+        $cmd = "find $dir -type d -empty -delete";
+        exec($cmd); 
+        return true;
+    }
 }
