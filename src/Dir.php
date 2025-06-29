@@ -60,7 +60,7 @@ class Dir
     * 删除目录
     * @param $day 几天前，默认1天前
     */
-    public static function dir($dir,$day = 1){
+    public static function del($dir,$day = 1){
         $day = $day - 1;
         if($day < 0){
             return false;
